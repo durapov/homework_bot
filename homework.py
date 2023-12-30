@@ -49,6 +49,7 @@ current_status = {}
 previous_status = {}
 chat_id = TELEGRAM_CHAT_ID
 
+
 class SendingError(Exception):
     """Exception."""
 
