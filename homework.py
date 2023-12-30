@@ -47,7 +47,6 @@ HOMEWORK_VERDICTS = {
 
 current_status = {}
 previous_status = {}
-chat_id = TELEGRAM_CHAT_ID
 
 
 class SendingError(Exception):
@@ -109,9 +108,8 @@ def get_api_answer(timestamp):
 
 def send_message(bot, message):
     """Отправить сообщение в Telegram чат."""
-    bot = telegram.Bot(token=TELEGRAM_TOKEN)
     try:
-        bot.send_message(chat_id, message)
+        bot.send_message(TELEGRAM_CHAT_ID, message)
     except TelegramError as error:
         logger.error(f'Сбой при отправке сообщения в Telegram: {error}')
 
@@ -139,7 +137,7 @@ def check_homeworks(bot, homeworks):
         message = 'Нет домашних заданий на проверке'
         current_status['status'] = 'Нет домашних заданий на проверке'
         if current_status != previous_status:
-            send_message(chat_id, message)
+            bot.send_message(TELEGRAM_CHAT_ID, message)
             logger.debug(f'В Telegram отправлено: {message}.')
             previous_status = current_status.copy()
         else:
@@ -196,7 +194,7 @@ def main():
                 logger.debug('Извлечено сообщение о статусе последней домашки')
                 current_status['status'] = message
                 if current_status != previous_status:
-                    send_message(chat_id, message)
+                    bot.send_message(TELEGRAM_CHAT_ID, message)
                     logger.debug(f'В Telegram отправлено: {message}.')
                     previous_status = current_status.copy()
                 else:
@@ -211,7 +209,7 @@ def main():
             logger.error(message)
             current_status['status'] = message
             if current_status != previous_status:
-                send_message(chat_id, message)
+                bot.send_message(TELEGRAM_CHAT_ID, message)
                 logger.debug(f'В Telegram отправлено: {message}.')
                 previous_status = current_status.copy()
         time.sleep(RETRY_PERIOD)
