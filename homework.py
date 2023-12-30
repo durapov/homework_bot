@@ -138,7 +138,7 @@ def check_homeworks(bot, homeworks):
         message = 'Нет домашних заданий на проверке'
         current_status['status'] = 'Нет домашних заданий на проверке'
         if current_status != previous_status:
-            send_message(bot, message)
+            send_message(TELEGRAM_CHAT_ID, message)
             logger.debug(f'В Telegram отправлено: {message}.')
             previous_status = current_status.copy()
         else:
@@ -195,7 +195,7 @@ def main():
                 logger.debug('Извлечено сообщение о статусе последней домашки')
                 current_status['status'] = message
                 if current_status != previous_status:
-                    send_message(bot, message)
+                    send_message(TELEGRAM_CHAT_ID, message)
                     logger.debug(f'В Telegram отправлено: {message}.')
                     previous_status = current_status.copy()
                 else:
@@ -210,7 +210,7 @@ def main():
             logger.error(message)
             current_status['status'] = message
             if current_status != previous_status:
-                send_message(bot, message)
+                send_message(TELEGRAM_CHAT_ID, message)
                 logger.debug(f'В Telegram отправлено: {message}.')
                 previous_status = current_status.copy()
         time.sleep(RETRY_PERIOD)
