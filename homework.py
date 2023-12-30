@@ -49,6 +49,12 @@ current_status = {}
 previous_status = {}
 
 
+class SendingError(Exception):
+    """Exception."""
+
+    pass
+
+
 def check_tokens():
     """Проверить доступность переменных окружения.
     Проверить токены Телеграма и Практикум.Домашки, а также ID чата
@@ -120,7 +126,7 @@ def check_response(response):
     return response['homeworks']
 
 
-def check_homeworks(homeworks):
+def check_homeworks(bot, homeworks):
     """Проверить полученный от API список домашек.
     Вернуть Flse, если список домашек пустой, и True, если список
     домашек не пустой.
@@ -132,7 +138,7 @@ def check_homeworks(homeworks):
         message = 'Нет домашних заданий на проверке'
         current_status['status'] = 'Нет домашних заданий на проверке'
         if current_status != previous_status:
-            send_message(TELEGRAM_CHAT_ID, message)
+            send_message(bot, message)
             logger.debug(f'В Telegram отправлено: {message}.')
             previous_status = current_status.copy()
         else:
@@ -174,6 +180,7 @@ def main():
     сообщение об этом в Telegram чат.
     """
     global current_status, previous_status
+    bot = telegram.Bot(token=TELEGRAM_TOKEN)
     timestamp = int(time.time())
     logger.debug('***************Бот запущен')
     check_tokens()
@@ -183,24 +190,27 @@ def main():
             api_response = get_api_answer(timestamp)
             logger.debug('Получен ответ API.')
             homeworks = check_response(api_response)
-            if check_homeworks(homeworks):
+            if check_homeworks(bot, homeworks):
                 message = parse_status(homeworks[0])
                 logger.debug('Извлечено сообщение о статусе последней домашки')
                 current_status['status'] = message
                 if current_status != previous_status:
-                    send_message(TELEGRAM_CHAT_ID, message)
+                    send_message(bot, message)
                     logger.debug(f'В Telegram отправлено: {message}.')
                     previous_status = current_status.copy()
                 else:
                     logger.info('В Telegram сообщение не отправлено.')
                     logger.debug('Статус последней домашки не изменился '
                                  'после предыдущей проверки*************')
+                    raise SendingError
+        except SendingError as error:
+            logging.error(error)
         except Exception as error:
             message = f'Сбой в работе программы {error}'
             logger.error(message)
             current_status['status'] = message
             if current_status != previous_status:
-                send_message(TELEGRAM_CHAT_ID, message)
+                send_message(bot, message)
                 logger.debug(f'В Telegram отправлено: {message}.')
                 previous_status = current_status.copy()
         time.sleep(RETRY_PERIOD)
