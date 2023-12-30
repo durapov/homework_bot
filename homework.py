@@ -126,18 +126,17 @@ def check_homeworks(homeworks):
     домашек не пустой.
     """
     global current_status, previous_status
-    bot = telegram.Bot(token=TELEGRAM_TOKEN)
     if not homeworks:
         logger.info('От API получен пустой список. Нет домашних '
                     'заданий на проверке')
         message = 'Нет домашних заданий на проверке'
         current_status['status'] = 'Нет домашних заданий на проверке'
         if current_status != previous_status:
-            send_message(bot, message)
+            send_message(TELEGRAM_CHAT_ID, message)
             logger.debug(f'В Telegram отправлено: {message}.')
             previous_status = current_status.copy()
         else:
-            logger.info('В Telegram сообщение не отправлено.')
+            logger.error('В Telegram сообщение не отправлено.')
             logger.debug('Статус последней домашки не изменился после '
                          'прошлой проверки****************************')
         return False
@@ -179,7 +178,6 @@ def main():
     logger.debug('***************Бот запущен')
     check_tokens()
     logger.debug('Токены проверены')
-    bot = telegram.Bot(token=TELEGRAM_TOKEN)
     while True:
         try:
             api_response = get_api_answer(timestamp)
@@ -190,7 +188,7 @@ def main():
                 logger.debug('Извлечено сообщение о статусе последней домашки')
                 current_status['status'] = message
                 if current_status != previous_status:
-                    send_message(bot, message)
+                    send_message(TELEGRAM_CHAT_ID, message)
                     logger.debug(f'В Telegram отправлено: {message}.')
                     previous_status = current_status.copy()
                 else:
@@ -202,7 +200,7 @@ def main():
             logger.error(message)
             current_status['status'] = message
             if current_status != previous_status:
-                send_message(bot, message)
+                send_message(TELEGRAM_CHAT_ID, message)
                 logger.debug(f'В Telegram отправлено: {message}.')
                 previous_status = current_status.copy()
         time.sleep(RETRY_PERIOD)
