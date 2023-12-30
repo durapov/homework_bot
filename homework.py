@@ -54,7 +54,6 @@ def check_tokens():
     Проверить токены Телеграма и Практикум.Домашки, а также ID чата
     в Телеграме (PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID.).
     """
-    bot = telegram.Bot(token=TELEGRAM_TOKEN)
     missing_tokens = 0
     if not PRACTICUM_TOKEN:
         logger.critical('Отсутствует обязательная переменная окружения '
@@ -71,12 +70,14 @@ def check_tokens():
     if missing_tokens != 0:
         logger.critical('Программа принудительно остановлена.')
         sys.exit()
-    try:
-        bot.send_chat_action(TELEGRAM_CHAT_ID, 'typing')
-    except TelegramError as error:
-        logger.critical(f'Чат Telegram недоступен: {error}. Программа '
-                        f'принудительно остановлена.')
-        sys.exit()
+    # проверка доступности Telegram чата
+    # bot = telegram.Bot(token=TELEGRAM_TOKEN)
+    # try:
+    #     bot.send_chat_action(TELEGRAM_CHAT_ID, 'typing')
+    # except TelegramError as error:
+    #     logger.critical(f'Чат Telegram недоступен: {error}. Программа '
+    #                     f'принудительно остановлена.')
+    #     sys.exit()
 
 
 def get_api_answer(timestamp):
@@ -110,10 +111,12 @@ def send_message(bot, message):
 
 def check_response(response):
     """Проверить ответ API на соответствие документации сервиса."""
-    if 'homeworks' not in response:
-        raise KeyError('Ответ API не содержит ключ homeworks')
     if not isinstance(response, dict):
         raise TypeError('Ответ API не является словарем')
+    if 'homeworks' not in response:
+        raise KeyError('Ответ API не содержит ключ homeworks')
+    if not isinstance(response['homeworks'], list):
+        raise TypeError('Ответ API под ключом "homeworks" не является списком')
     return response['homeworks']
 
 
