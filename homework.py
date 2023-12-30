@@ -50,9 +50,9 @@ previous_status = {}
 
 
 def check_tokens():
-    """Проверить доступность переменных окружения: токенов Телеграма
-    и Практикум.Домашки, а также ID чата в Телеграме (PRACTICUM_TOKEN,
-    TELEGRAM_TOKEN, TELEGRAM_CHAT_ID.).
+    """Проверить доступность переменных окружения.
+    Проверить токены Телеграма и Практикум.Домашки, а также ID чата
+    в Телеграме (PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID.).
     """
     bot = telegram.Bot(token=TELEGRAM_TOKEN)
     missing_tokens = 0
@@ -77,14 +77,13 @@ def check_tokens():
         logger.critical(f'Чат Telegram недоступен: {error}. Программа '
                         f'принудительно остановлена.')
         sys.exit()
-    
+
 
 def get_api_answer(timestamp):
-    """
-    Отправить GET-запрос к API сервиса Практикум.Домашка, вернуть ответ
-    API в виде словаря. Вызывать исключения если: эндпойнт недоступен,
-    ошибка подключения, ошибка запроса. Параметры: timestamp: временная
-    метка.
+    """Отправить GET-запрос к API сервиса Практикум.Домашка.
+    Вернуть ответ API в виде словаря. Вызывать исключения если: эндпойнт
+    недоступен, ошибка подключения, ошибка запроса.
+    Параметры: timestamp: временная метка.
     """
     try:
         response = requests.get(ENDPOINT, headers=HEADERS,
@@ -110,9 +109,7 @@ def send_message(bot, message):
 
 
 def check_response(response):
-    """Проверить ответ API на соответствие документации сервиса
-    Практикум.Домашка.
-    """
+    """Проверить ответ API на соответствие документации сервиса."""
     if 'homeworks' not in response:
         raise KeyError('Ответ API не содержит ключ homeworks')
     if not isinstance(response, dict):
@@ -121,6 +118,10 @@ def check_response(response):
 
 
 def check_homeworks(homeworks):
+    """Проверить полученный от API список домашек.
+    Вернуть Flse, если список домашек пустой, и True, если список
+    домашек не пустой.
+    """
     global current_status, previous_status
     bot = telegram.Bot(token=TELEGRAM_TOKEN)
     if not homeworks:
@@ -162,12 +163,13 @@ def parse_status(homework):
 
 
 def main():
-    """Запустить Telegram-бота, проверить наличие обязательных
-    переменных окружения, отправить GET-запрос к API сервиса
-    Практикум.Домашка, проверить ответ и отправить в Telegram чат статус
-    домашней работы, повторять запрос и проверку каждые 10 минут,
-    при наличии обновлений отправить их в Telegram чат. В случае сбоев
-    в работе программы - отправить сообщение об этом в Telegram чат.
+    """Запустить Telegram-бота.
+    Проверить наличие обязательных переменных окружения, отправить
+    GET-запрос к API сервиса Практикум.Домашка, проверить ответ и
+    отправить в Telegram чат статус домашней работы, повторять запрос
+    и проверку каждые 10 минут, при наличии обновлений отправить их
+    в Telegram чат. В случае сбоев в работе программы - отправить
+    сообщение об этом в Telegram чат.
     """
     global current_status, previous_status
     timestamp = int(time.time())
@@ -182,8 +184,7 @@ def main():
             homeworks = check_response(api_response)
             if check_homeworks(homeworks):
                 message = parse_status(homeworks[0])
-                logger.debug(f'Извлечено сообщение о статусе последней '
-                             f'домашки')
+                logger.debug('Извлечено сообщение о статусе последней домашки')
                 current_status['status'] = message
                 if current_status != previous_status:
                     send_message(bot, message)
