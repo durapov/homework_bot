@@ -35,7 +35,7 @@ TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
 TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
 
 
-RETRY_PERIOD = 20
+RETRY_PERIOD = 600
 ENDPOINT = 'https://practicum.yandex.ru/api/user_api/homework_statuses/'
 HEADERS = {'Authorization': f'OAuth {PRACTICUM_TOKEN}'}
 
@@ -182,7 +182,7 @@ def main():
     """
     global current_status, previous_status
     bot = telegram.Bot(token=TELEGRAM_TOKEN)
-    timestamp = 1111111111
+    timestamp = int(time.time())
     logger.debug('***************Бот запущен')
     check_tokens()
     logger.debug('Токены проверены')
