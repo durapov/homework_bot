@@ -35,7 +35,7 @@ TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
 TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
 
 
-RETRY_PERIOD = 600
+RETRY_PERIOD = 20
 ENDPOINT = 'https://practicum.yandex.ru/api/user_api/homework_statuses/'
 HEADERS = {'Authorization': f'OAuth {PRACTICUM_TOKEN}'}
 
@@ -110,6 +110,7 @@ def send_message(bot, message):
     """Отправить сообщение в Telegram чат."""
     try:
         bot.send_message(TELEGRAM_CHAT_ID, message)
+        logger.debug('Сообщение отправлено в Telegram')
     except TelegramError as error:
         logger.error(f'Сбой при отправке сообщения в Telegram: {error}')
 
@@ -131,13 +132,14 @@ def check_homeworks(bot, homeworks):
     домашек не пустой.
     """
     global current_status, previous_status
+    bot = telegram.Bot(token=TELEGRAM_TOKEN)
     if not homeworks:
         logger.info('От API получен пустой список. Нет домашних '
                     'заданий на проверке')
         message = 'Нет домашних заданий на проверке'
         current_status['status'] = 'Нет домашних заданий на проверке'
         if current_status != previous_status:
-            bot.send_message(TELEGRAM_CHAT_ID, message)
+            send_message(bot, message)
             logger.debug(f'В Telegram отправлено: {message}.')
             previous_status = current_status.copy()
         else:
@@ -180,7 +182,7 @@ def main():
     """
     global current_status, previous_status
     bot = telegram.Bot(token=TELEGRAM_TOKEN)
-    timestamp = int(time.time())
+    timestamp = 1111111111
     logger.debug('***************Бот запущен')
     check_tokens()
     logger.debug('Токены проверены')
@@ -194,7 +196,7 @@ def main():
                 logger.debug('Извлечено сообщение о статусе последней домашки')
                 current_status['status'] = message
                 if current_status != previous_status:
-                    bot.send_message(TELEGRAM_CHAT_ID, message)
+                    send_message(bot, message)
                     logger.debug(f'В Telegram отправлено: {message}.')
                     previous_status = current_status.copy()
                 else:
@@ -209,7 +211,7 @@ def main():
             logger.error(message)
             current_status['status'] = message
             if current_status != previous_status:
-                bot.send_message(TELEGRAM_CHAT_ID, message)
+                send_message(bot, message)
                 logger.debug(f'В Telegram отправлено: {message}.')
                 previous_status = current_status.copy()
         time.sleep(RETRY_PERIOD)
