@@ -41,6 +41,14 @@ HOMEWORK_VERDICTS: dict = {
 }
 
 
+def check_tokens():
+    """Проверить доступность переменных окружения.
+    Проверить токены Телеграма и Практикум.Домашки, а также ID чата
+    в Телеграме (PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID.).
+    """
+    return all([PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID])
+
+
 def get_api_answer(timestamp: int) -> dict:
     """Отправить GET-запрос к API сервиса Практикум.Домашка.
     Вернуть ответ API в виде словаря. Вызывать исключения если: эндпойнт
@@ -119,7 +127,7 @@ def main():
     bot: telegram.Bot = telegram.Bot(token=TELEGRAM_TOKEN)
     timestamp = int(time.time())
     logger.debug('Бот запущен, начало проверки токенов.')
-    if not all([PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID]):
+    if not check_tokens():
         logger.critical('Программа принудительно остановлена из-за '
                         'отсутствия обязательных переменных окружения.')
         sys.exit(0)
