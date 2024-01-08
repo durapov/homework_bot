@@ -23,12 +23,10 @@ logger.addHandler(handler)
 formatter = logging.Formatter('%(asctime)s [%(levelname)s] %(message)s')
 handler.setFormatter(formatter)
 
-
 PRACTICUM_TOKEN: str = cast(str, os.getenv('PRACTICUM_TOKEN', 'default_value'))
 TELEGRAM_TOKEN: str = cast(str, os.getenv('TELEGRAM_TOKEN', 'default_value'))
 TELEGRAM_CHAT_ID: str = cast(str, os.getenv(
     'TELEGRAM_CHAT_ID', 'default_value'))
-
 
 RETRY_PERIOD: int = 600
 ENDPOINT: str = 'https://practicum.yandex.ru/api/user_api/homework_statuses/'
@@ -46,6 +44,7 @@ def check_tokens():
     Проверить токены Телеграма и Практикум.Домашки, а также ID чата
     в Телеграме (PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID.).
     """
+    logger.debug('Начало проверки токенов')
     return all([PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID])
 
 
@@ -55,7 +54,7 @@ def get_api_answer(timestamp: int) -> dict:
     недоступен, ошибка подключения, ошибка запроса.
     Параметры: timestamp: временная метка.
     """
-    logger.debug('************Начало запроса к API')
+    logger.debug('__________Начало запроса к API')
     try:
         response = requests.get(ENDPOINT, headers=HEADERS,
                                 params={'from_date': timestamp})
@@ -114,24 +113,24 @@ def parse_status(homework: dict) -> str:
 
 
 def main():
-    """Запустить Telegram-бота.
-    Проверить наличие обязательных переменных окружения, отправить
-    GET-запрос к API сервиса Практикум.Домашка, проверить ответ и
-    отправить в Telegram чат статус домашней работы, повторять запрос
-    и проверку каждые 10 минут, при наличии обновлений отправить их
-    в Telegram чат. В случае сбоев в работе программы - отправить
-    сообщение об этом в Telegram чат.
+    """Создать и запустить Telegram-бота.
+    Предарительно проверить наличие обязательных переменных окружения,
+    отправить GET-запрос к API сервиса Практикум.Домашка, проверить
+    ответ и отправить в Telegram чат статус домашней работы, повторять
+    запрос и проверку ответа каждые 10 минут, при наличии обновлений
+    отправить их в Telegram чат. В случае сбоев в работе программы -
+    отправить сообщение об этом в Telegram чат.
     """
-    current_status: dict = {}
-    previous_status: dict = {}
-    bot: telegram.Bot = telegram.Bot(token=TELEGRAM_TOKEN)
-    timestamp = int(time.time())
-    logger.debug('Бот запущен, начало проверки токенов.')
     if not check_tokens():
         logger.critical('Программа принудительно остановлена из-за '
                         'отсутствия обязательных переменных окружения.')
         sys.exit(0)
     logger.debug('Успешно проверено наличие токенов')
+    current_status: dict = {}
+    previous_status: dict = {}
+    timestamp = int(time.time())
+    bot: telegram.Bot = telegram.Bot(token=TELEGRAM_TOKEN)
+    logger.debug('Бот создан')
     while True:
         try:
             api_response: dict = get_api_answer(timestamp)
@@ -149,12 +148,12 @@ def main():
                 current_status['status'] = message
             if current_status != previous_status:
                 send_message(bot, message)
-                logger.debug(f'В Telegram отправлено: {message}**************')
+                logger.debug(f'В Telegram отправлено: {message}')
                 previous_status = current_status.copy()
             else:
                 logger.info('В Telegram сообщение не отправлено.')
                 logger.debug('Статус последней домашки не изменился '
-                             'после предыдущей проверки*************')
+                             'после предыдущей проверки')
                 raise SendingError
         except SendingError as error:
             logging.error(error)
